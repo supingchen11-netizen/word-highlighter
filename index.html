@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deutsch Meister — 生词标注阅读器</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <header>
+    <h1>Deutsch Meister — 生词标注阅读器（离线可用 + 公共API备用）</h1>
+    <div class="status" id="status">就绪</div>
+  </header>
+
+  <main class="grid">
+    <section class="left">
+      <h2>① 输入或粘贴德语文章</h2>
+      <textarea id="article" placeholder="将德语文章粘贴到这里，然后点击“分词并显示”"></textarea>
+      <div class="controls">
+        <button id="tokenizeBtn">分词并显示</button>
+        <label class="chk"><input type="checkbox" id="autoTranslate" checked> 点击单词时尝试在线翻译（可选）</label>
+      </div>
+
+      <h2>② 点击不认识的单词（会高亮并保存到词卡）</h2>
+      <div id="reader" class="reader"></div>
+    </section>
+
+    <aside class="right">
+      <h2>📇 生词词卡</h2>
+      <div class="export-row">
+        <button id="exportCSV">导出生词 CSV</button>
+        <button id="clearCards" class="danger">清空词卡</button>
+      </div>
+      <div id="cards" class="cards"></div>
+    </aside>
+  </main>
+
+  <footer>
+    <small>提示：无网络或API超时时，会自动使用本地离线词库。生词保存在浏览器本地（localStorage）。</small>
+  </footer>
+
+  <div id="popup" class="popup hidden"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>
