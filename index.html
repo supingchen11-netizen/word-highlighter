@@ -1,46 +1,85 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Deutsch Meister — 生词标注阅读器</title>
-  <link rel="stylesheet" href="styles.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生词标注阅读器</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    textarea { width: 100%; height: 200px; padding: 0.5rem; font-size: 1rem; }
+    .highlighted { background-color: yellow; cursor: pointer; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Deutsch Meister — 生词标注阅读器（离线可用 + 公共API备用）</h1>
-    <div class="status" id="status">就绪</div>
-  </header>
+  <h1>Deutsch Meister — 生词标注阅读器</h1>
+  <p>① 输入或粘贴德语文章：</p>
+  <textarea id="article" placeholder="在这里粘贴文章..."></textarea>
+  <p>② 点击不认识的单词（会高亮并保存）</p>
+  <h2>生词词卡</h2>
+  <ul id="word-list"></ul>
+  <button id="export">导出 CSV</button>
+  <button id="clear">清空词卡</button>
 
-  <main class="grid">
-    <section class="left">
-      <h2>① 输入或粘贴德语文章</h2>
-      <textarea id="article" placeholder="将德语文章粘贴到这里，然后点击“分词并显示”"></textarea>
-      <div class="controls">
-        <button id="tokenizeBtn">分词并显示</button>
-        <label class="chk"><input type="checkbox" id="autoTranslate" checked> 点击单词时尝试在线翻译（可选）</label>
-      </div>
+  <script>
+    const textarea = document.getElementById('article');
+    const wordListEl = document.getElementById('word-list');
+    const exportBtn = document.getElementById('export');
+    const clearBtn = document.getElementById('clear');
+    let words = JSON.parse(localStorage.getItem('words') || '[]');
 
-      <h2>② 点击不认识的单词（会高亮并保存到词卡）</h2>
-      <div id="reader" class="reader"></div>
-    </section>
+    function renderWords() {
+      wordListEl.innerHTML = '';
+      words.forEach(w => {
+        const li = document.createElement('li');
+        li.textContent = w;
+        wordListEl.appendChild(li);
+      });
+    }
 
-    <aside class="right">
-      <h2>📇 生词词卡</h2>
-      <div class="export-row">
-        <button id="exportCSV">导出生词 CSV</button>
-        <button id="clearCards" class="danger">清空词卡</button>
-      </div>
-      <div id="cards" class="cards"></div>
-    </aside>
-  </main>
+    textarea.addEventListener('input', () => {
+      const text = textarea.value;
+      const parts = text.split(/(\s+)/);
+      textarea.style.display = 'none';
+      const div = document.createElement('div');
+      parts.forEach(p => {
+        if (p.trim() !== '') {
+          const span = document.createElement('span');
+          span.textContent = p;
+          span.className = 'word';
+          span.addEventListener('click', () => {
+            span.classList.toggle('highlighted');
+            if (span.classList.contains('highlighted')) {
+              words.push(p);
+              localStorage.setItem('words', JSON.stringify(words));
+              renderWords();
+            }
+          });
+          div.appendChild(span);
+        } else {
+          div.appendChild(document.createTextNode(p));
+        }
+      });
+      textarea.parentNode.insertBefore(div, textarea.nextSibling);
+    });
 
-  <footer>
-    <small>提示：无网络或API超时时，会自动使用本地离线词库。生词保存在浏览器本地（localStorage）。</small>
-  </footer>
+    exportBtn.addEventListener('click', () => {
+      const csv = words.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'words.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
 
-  <div id="popup" class="popup hidden"></div>
+    clearBtn.addEventListener('click', () => {
+      localStorage.removeItem('words');
+      words = [];
+      renderWords();
+    });
 
-  <script src="main.js"></script>
+    renderWords();
+  </script>
 </body>
 </html>
